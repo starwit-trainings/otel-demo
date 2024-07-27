@@ -50,8 +50,6 @@ services:
     volumes:
       - ./otel-configs/grafana/grafana.ini:/etc/grafana/grafana.ini
       - ./otel-configs/grafana/provisioning/:/etc/grafana/provisioning/
-    ports:
-      - "${GRAFANA_SERVICE_PORT}"
     logging: *logging
 
   # OpenTelemetry Collector
@@ -68,8 +66,8 @@ services:
       - ${OTEL_COLLECTOR_CONFIG}:/etc/otelcol-config.yml
       - ${OTEL_COLLECTOR_CONFIG_EXTRAS}:/etc/otelcol-config-extras.yml
     ports:
-      - "${OTEL_COLLECTOR_PORT_GRPC}"
-      - "${OTEL_COLLECTOR_PORT_HTTP}"
+      - "${OTEL_COLLECTOR_PORT_GRPC}:${OTEL_COLLECTOR_PORT_GRPC}"
+      - "${OTEL_COLLECTOR_PORT_HTTP}:${OTEL_COLLECTOR_PORT_HTTP}"
     depends_on:
       - jaeger
     logging: *logging
@@ -87,9 +85,10 @@ services:
       - --config.file=/etc/prometheus/prometheus-config.yaml
       - --storage.tsdb.path=/prometheus
       - --web.enable-lifecycle
-      - --web.route-prefix=/
       - --enable-feature=exemplar-storage
       - --enable-feature=otlp-write-receiver
+      - --web.external-url=/prometheus/
+      - --web.route-prefix=/prometheus/
     volumes:
       - ./otel-configs/prometheus-config.yaml:/etc/prometheus/prometheus-config.yaml
     deploy:
@@ -98,7 +97,7 @@ services:
           memory: 300M
     restart: unless-stopped
     ports:
-      - "${PROMETHEUS_SERVICE_PORT}:${PROMETHEUS_SERVICE_PORT}"
+      - "${PROMETHEUS_SERVICE_PORT}"
     logging: *logging
 
   # OpenSearch
@@ -134,8 +133,8 @@ services:
     image: frontendproxy:latest
     container_name: frontend-proxy
     build:
-      context: ./
-      dockerfile: ${FRONTEND_PROXY_DOCKERFILE}
+      context: ./otel-configs/frontendproxy/
+      dockerfile: Dockerfile
     deploy:
       resources:
         limits:
@@ -155,6 +154,8 @@ services:
       - OTEL_COLLECTOR_PORT_GRPC
       - OTEL_COLLECTOR_PORT_HTTP
       - OTEL_RESOURCE_ATTRIBUTES
+      - PROMETHEUS_SERVICE_HOST
+      - PROMETHEUS_SERVICE_PORT
       - ENVOY_PORT
     depends_on:
       jaeger:
