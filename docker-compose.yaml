@@ -38,8 +38,11 @@ services:
 
   # Grafana
   grafana:
-    image: ${GRAFANA_IMAGE}
+    image: grafana:latest
     container_name: grafana
+    build:
+      context: ./otel-configs/grafana/
+      dockerfile: Dockerfile  
     deploy:
       resources:
         limits:
