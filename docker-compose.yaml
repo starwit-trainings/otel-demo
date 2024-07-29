@@ -48,8 +48,6 @@ services:
         limits:
           memory: 100M
     restart: unless-stopped
-    environment:
-      - "GF_INSTALL_PLUGINS=grafana-opensearch-datasource"
     volumes:
       - ./otel-configs/grafana/grafana.ini:/etc/grafana/grafana.ini
       - ./otel-configs/grafana/provisioning/:/etc/grafana/provisioning/
