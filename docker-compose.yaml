@@ -9,6 +9,10 @@ networks:
   default:
     name: opentelemetry
     driver: bridge
+    ipam:
+      config:
+        - subnet: 172.30.0.0/24
+          ip_range: 172.30.0.0/24
 
 services:
   # ********************
